@@ -1,5 +1,4 @@
 #!/bin/bash
-figlet "MRX_B15H4L" | lolcat
 
 installer(){
     echo "Installing Script dependencies......."
@@ -43,7 +42,7 @@ installer(){
     sudo EyeWitness/Python/setup/setup.sh &>/dev/null
     echo 'alias eyewitness="python ~/tools/EyeWitness/Python/EyeWitness.py --web -f"' >> "$HOME/.bashrc"
     wget https://raw.githubusercontent.com/abbishal/subdomain/main/subdomain.sh &>/dev/null
-        echo "alias sub=~/tools/subdomain.sh" >> "$HOME/.bashrc"
+    echo "alias sub=~/tools/subdomain.sh" >> "$HOME/.bashrc"
 
     git clone https://github.com/blechschmidt/massdns.git &>/dev/null
     cd massdns
