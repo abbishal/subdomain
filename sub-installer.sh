@@ -69,4 +69,8 @@ installer(){
 
 
 }
-
+if [ "$1" == "install" ]; then
+    installer
+else
+    echo "#Usage: ./sub-installer.sh install"
+fi
