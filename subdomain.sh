@@ -160,7 +160,6 @@ done
 cd "/var/www/html/scans/$1/" || exit
 echo "checking for possible takeovers....."
 dnsreaper subdomains.txt --out dnsreaper.txt &>/dev/null &
-takeover -l subdomains.txt -o takeover.txt &>/dev/null &
 dnsx -l subdomains.txt -cname -ns -resp -o dnsx.txt &>/dev/null &
 wait
 echo "Starting Nuclei....."
