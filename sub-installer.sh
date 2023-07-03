@@ -45,6 +45,7 @@ installer(){
     sudo EyeWitness/Python/setup/setup.sh &>/dev/null
     echo 'alias eyewitness="python ~/tools/EyeWitness/Python/EyeWitness.py --web -f"' >> "$HOME/.zshrc"
     wget https://raw.githubusercontent.com/abbishal/subdomain/main/subdomain.sh &>/dev/null
+    chmod +x subdomain.sh
     echo "alias sub=~/tools/subdomain.sh" >> "$HOME/.zshrc"
 
     git clone https://github.com/blechschmidt/massdns.git &>/dev/null
@@ -72,10 +73,5 @@ installer(){
 
 
 }
-
-
-if [ "$1" == "install" ]; then
-    installer
-else
-    echo "#Usage: ./sub-installer.sh install"
-fi
+installer
+sub
