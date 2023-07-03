@@ -2,8 +2,8 @@
 shopt -s expand_aliases
 source ~/.sub_alias
 figlet "MRX_B15H4L" | lolcat
-
-
+export findomain_fb_token="555079819602127|oEXPM_GZRmuB5K7aAjnGxdCwttg"
+export findomain_virustotal_token="1cbf2896a5355bb7e6e668c15e50e43d7dc053ad394eac818b8d663c6c4c6e83"
 # net(){
 #     ping -c 1 google.com &>/dev/null
 #     if [ $? -ne 0 ]; then
@@ -45,11 +45,10 @@ passive() {
 bruteforce() {
     for i in $(cat $1)
     do
-        if ( dig @8.8.8.8 -t A "wildcardtestbyabbishal.$i" | grep -q 'NXDOMAIN' ); then 
-            puredns bruteforce ~/wordlist/subdomains.txt "$i" -r ~/wordlist/resolvers.txt --write "$i.tmp" &>/dev/null &
-
+        if ( dig "wildcardtestbyabbishal.$i" | grep -q 'NXDOMAIN' ); then 
+            puredns bruteforce ~/wordlist/subdomains.txt "$i" -r ~/wordlist/resolvers.txt --write "brute-$i.tmp" &>/dev/null &
         else
-            echo "wildcard.$i" >> "$output"
+            echo "wildcard.$i" >> "$wild"
             sed -i '/"$i"/d' "$1"
         fi
     done
@@ -60,8 +59,8 @@ bruteforce() {
 dnsg() {
     for i in $(cat $1)
     do
-        if ( dig @8.8.8.8 -t A "wildcardtestbyabbishal.$i" | grep -q 'NXDOMAIN' ); then 
-            echo "$i" | dnsgen -w ~/wordlist/permutations_list.txt - | puredns resolve -r ~/wordlist/resolvers.txt --write "$i.tmp" &>/dev/null &
+        if ( dig "wildcardtestbyabbishal.$i" | grep -q 'NXDOMAIN' ); then 
+            echo "$i" | dnsgen -w ~/wordlist/permutations_list.txt - | puredns resolve -r ~/wordlist/resolvers.txt --write "dns-$i.tmp" &>/dev/null &
         fi
     done
     wait
@@ -89,6 +88,7 @@ fi
 
 intialize
 output="/var/www/html/scans/$1/subdomains.txt"
+wild="/var/www/html/scans/$1/wildcard.txt"
 
 cd ~/recon/$1/ || exit
 
@@ -113,41 +113,37 @@ sort "$1.new$counter" > "$output"
 while [ $new -ge 1 ]; do
     ((counter=counter+1))
     printf "Bruteforce level %d starting.....\n" $counter
-    split -l 10 --additional-suffix=.split "$1.new$(($counter-1))"
+    split -l 5 --additional-suffix=.split "$1.new$(($counter-1))"
     total=$(sort "$1.new$(($counter-1))" | wc -l)
     scanned=0
     for s in ~/recon/$1/*.split
     do
         bruteforce $s
-        ((scanned=scanned+10))
+        ((scanned=scanned+5))
         if [ $scanned -lt $total ]; then
             printf "<b>Bruteforce level %d Running.</b><br>Total %d Domains scanned out of %d<br>" $counter $scanned $total > /var/www/html/sc.html
         else
             printf "<b>Bruteforce level %d Completed.</b><br>Total %d Domains scanned.<br>" $counter $total > /var/www/html/sc.html
         fi
-        #net
+        sleep 2
     done
-    sort *.tmp -u > "$1.brute$counter"
-    rm *.tmp
 
     scanned=0
     printf "DnsGen level %d starting.....\n" $counter
     for s in ~/recon/$1/*.split
     do
         dnsg $s
-        ((scanned=scanned+10))
+        ((scanned=scanned+5))
         if [ $scanned -lt $total ]; then
             printf "<b>DnsGen level %d Running.</b><br>Total %d Domains scanned out of %d<br>" $counter $scanned $total > /var/www/html/sc.html
         else
             printf "<b>DnsGen level %d Completed.</b><br>Total %d Domains scanned.<br>" $counter $total > /var/www/html/sc.html
         fi
-        #net
+        sleep 2
     done
-    sort *.tmp -u > "$1.gen$counter"
+    sort *.tmp -u | sort > "$1.tmp"
     printf "DnsGen level %d Completed.\n" $counter
 
-
-    sort "$1.brute$counter" "$1.gen$counter" -u | sort > "$1.tmp"
     sort "$output" > "$1.old"
     comm "$1.old" "$1.tmp" -13 > "$1.new$counter"
     rm *.tmp *.split
@@ -163,9 +159,7 @@ dnsreaper subdomains.txt --out dnsreaper.txt &>/dev/null &
 dnsx -l subdomains.txt -cname -ns -resp -o dnsx.txt &>/dev/null &
 wait
 echo "Starting Nuclei....."
-naabu -l subdomains.txt -ec -silent | httpx -silent -o httpx.txt &>/dev/null
-
-eyewitness httpx.txt --user-agent "Hackerone" -d eye &>/dev/null
+httpx -l subdomains.txt -silent -o httpx.txt &>/dev/null
 nuclei -l httpx.txt -o nuclei.txt -silent &>/dev/null
 echo "Scan completed"
 curl "https://api.telegram.org/bot6102545432:AAHLTE0SdQ7neK5Q2D2gmrGheDJc8ew6uN8/sendMessage?chat_id=847743133&text=All+Scan+Completed+for+$1" &>/dev/null
