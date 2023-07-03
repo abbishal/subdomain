@@ -1,23 +1,24 @@
-#!/bin/bash
+#!/bin/zsh
 
 installer(){
+    cd ~ || exit
     echo "Installing Script dependencies......."
     sudo apt update
     sudo apt upgrade -y
     sudo apt install -y git make perl wget curl python3 python-is-python3 python3-pip libpcap-dev apache2 figlet lolcat tmux
 
-    echo 'alias tmux="tmux attach || tmux"' >> "$HOME/.bashrc"
+    echo 'alias tmux="tmux attach || tmux"' >> "$HOME/.zshrc"
 
     echo "installing GO"
 	sys=$(uname -m)
 	LATEST=$(curl -s 'https://go.dev/VERSION?m=text')
 	[ $sys == "x86_64" ] && "wget https://golang.org/dl/$LATEST.linux-amd64.tar.gz" -O golang.tar.gz &>/dev/null || wget "https://golang.org/dl/$LATEST.linux-386.tar.gz" -O golang.tar.gz &>/dev/null
 	sudo tar -C /usr/local -xzf golang.tar.gz
-	echo "export GOROOT=/usr/local/go" >> "$HOME/.bashrc"
-	echo "export GOPATH=$HOME/go" >> "$HOME/.bashrc"
-	echo 'export PATH=$PATH:$GOROOT/bin:$GOPATH/bin' >> "$HOME/.bashrc"
+	echo "export GOROOT=/usr/local/go" >> "$HOME/.zshrc"
+	echo "export GOPATH=$HOME/go" >> "$HOME/.zshrc"
+	echo 'export PATH=$PATH:$GOROOT/bin:$GOPATH/bin' >> "$HOME/.zshrc"
     echo 'export PATH=$PATH:/usr/local/go/bin' >> "$HOME/.profile"
-    source "$HOME/.bashrc"
+    source "$HOME/.zshrc"
 
     echo "installing main tools"
     go install github.com/d3mondev/puredns/v2@latest &>/dev/null
@@ -30,19 +31,21 @@ installer(){
     rm -r nuclei-templates/ssl
     grep "severity: info" nuclei-templates -r -l | xargs rm
     rm -r nuclei-templates/http/cves/20{00..17}
+    rm nuclei-templates/http/vulnerabilities/generic/crlf-injection.yaml
+    grep credentials-disclosure nuclei-templates -r -l | xargs rm
 
     mkdir ~/tools ; cd ~/tools || exit
     git clone https://github.com/abbishal/dnsReaper &>/dev/null
     pip install -r dnsReaper/requirements.txt &>/dev/null
-    echo 'alias dnsreaper="python3 ~/tools/dnsReaper/main.py file --filename"' >> "$HOME/.bashrc"
+    echo 'alias dnsreaper="python3 ~/tools/dnsReaper/main.py file --filename"' >> "$HOME/.zshrc"
     git clone https://github.com/abbishal/cname &>/dev/null
     pip install -r cname/requirements.txt &>/dev/null
-    echo 'alias cname="python ~/tools/cname/cname.py"' >> "$HOME/.bashrc"
+    echo 'alias cname="python ~/tools/cname/cname.py"' >> "$HOME/.zshrc"
     git clone https://github.com/FortyNorthSecurity/EyeWitness &>/dev/null
     sudo EyeWitness/Python/setup/setup.sh &>/dev/null
-    echo 'alias eyewitness="python ~/tools/EyeWitness/Python/EyeWitness.py --web -f"' >> "$HOME/.bashrc"
+    echo 'alias eyewitness="python ~/tools/EyeWitness/Python/EyeWitness.py --web -f"' >> "$HOME/.zshrc"
     wget https://raw.githubusercontent.com/abbishal/subdomain/main/subdomain.sh &>/dev/null
-    echo "alias sub=~/tools/subdomain.sh" >> "$HOME/.bashrc"
+    echo "alias sub=~/tools/subdomain.sh" >> "$HOME/.zshrc"
 
     git clone https://github.com/blechschmidt/massdns.git &>/dev/null
     cd massdns
@@ -65,10 +68,12 @@ installer(){
     wget https://raw.githubusercontent.com/bp0lr/dmut-resolvers/main/resolvers.txt &>/dev/null
     cd ~ || exit
     wget https://raw.githubusercontent.com/abbishal/subdomain/main/.sub_alias &>/dev/null
-    echo "source ~/.sub_alias" >> "$HOME/.bashrc"
+    echo "source ~/.sub_alias" >> "$HOME/.zshrc"
 
 
 }
+
+
 if [ "$1" == "install" ]; then
     installer
 else
